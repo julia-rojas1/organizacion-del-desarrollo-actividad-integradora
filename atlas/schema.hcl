@@ -13,6 +13,34 @@ table "users" {
     null = false
     type = character_varying(40)
   }
+
+ column "first_name" {
+    null = false
+    type = character_varying(100)
+  }
+  column "last_name" {
+    null = false
+    type = character_varying(100)
+  }
+  column "password" {
+    null = false
+    type = character_varying(255) 
+  }
+  column "enabled" {
+    null    = false
+    type    = boolean
+    default = true
+  }
+  column "updated_at" {
+    null    = true
+    type    = timestamptz
+    default = sql("now()")
+  }
+  column "last_access_time" {
+    null = true
+    type = timestamptz
+  }
+
   column "created_at" {
     null    = true
     type    = timestamptz
