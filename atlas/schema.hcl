@@ -75,7 +75,7 @@ table "users" {
   }
 
   check "last_name_length" {
-    expr = "(length(first_name) > 1)"
+    expr = "(length(last_name) > 1)"
   }
 
   check "password_min_length" {
