@@ -141,5 +141,47 @@ describe('Test database', () => {
 
       await expect(client.query(query)).rejects.toThrow('null value in column "city"')
     })
+
+    test('Insert a user with first_name at the limit (100 chars)', async () => {
+      const longName = 'a'.repeat(100)
+      const result = await client.query(
+        `INSERT INTO users (email, username, birthdate, city, first_name, last_name, password)
+        VALUES ('long@test.com', 'longuser', '2000-01-01', 'City', $1, 'Last', 'password123')`,
+        [longName]
+      )
+      expect(result.rowCount).toBe(1)
+    })
+
+    test('Insert a user exceeding first_name limit (101 chars) should fail', async () => {
+      const tooLongName = 'a'.repeat(101)
+      const query = `INSERT INTO users (email, username, birthdate, city, first_name, last_name, password)
+                    VALUES ('toolong@test.com', 'toolong', '2000-01-01', 'City', $1, 'Last', 'password123')`
+      await expect(client.query(query, [tooLongName])).rejects.toThrow('value too long')
+    })
+
+    test('Insert a user with password too short (7 chars) should fail', async () => {
+      const query = `INSERT INTO users (email, username, birthdate, city, first_name, last_name, password)
+                    VALUES ('short@test.com', 'shortpass', '2000-01-01', 'City', 'Name', 'Last', '1234567')`
+      // 'password_min_length' es el nombre que le pusimos al check en el .hcl
+      await expect(client.query(query)).rejects.toThrow('password_min_length')
+    })
+
+    test('Insert a user without "enabled" field should default to true', async () => {
+      await client.query(
+        `INSERT INTO users (email, username, birthdate, city, first_name, last_name, password)
+        VALUES ('default@test.com', 'defuser', '2000-01-01', 'City', 'Name', 'Last', 'password123')`
+      )
+      const res = await client.query('SELECT enabled FROM users WHERE email = $1', ['default@test.com'])
+      expect(res.rows[0].enabled).toBe(true)
+    })
+
+    test('Insert a user should automatically set updated_at', async () => {
+      await client.query(
+        `INSERT INTO users (email, username, birthdate, city, first_name, last_name, password)
+        VALUES ('time@test.com', 'timeuser', '2000-01-01', 'City', 'Name', 'Last', 'password123')`
+      )
+      const res = await client.query('SELECT updated_at FROM users WHERE email = $1', ['time@test.com'])
+      expect(res.rows[0].updated_at).not.toBeNull()
+    })
   })
 })
