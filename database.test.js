@@ -128,8 +128,8 @@ describe('Test database', () => {
 
     test('Insert a user with an invalid birthdate', async () => {
       const query = `INSERT INTO
-                     users (email, username, birthdate, city)
-                     VALUES ('user@example.com', 'user', 'invalid_date', 'La Plata')`
+                     users (email, username, birthdate, city, first_name, last_name, password)
+                     VALUES ('user@example.com', 'user', 'invalid_date', 'La Plata', 'Nombre', 'Apellido', 'secreto123')`
 
       await expect(client.query(query)).rejects.toThrow('invalid input syntax for type date')
     })
