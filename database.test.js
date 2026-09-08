@@ -142,6 +142,13 @@ describe('Test database', () => {
       await expect(client.query(query)).rejects.toThrow('null value in column "city"');
     });
 
+    test('Insert a user with first_name too short (2 chars) should fail', async () => {
+      const query = `INSERT INTO users (email, username, birthdate, city, first_name, last_name, password)
+                    VALUES ('first@test.com', 'firstuser', '2000-01-01', 'City', 'Jo', 'Perez', 'password123')`;
+
+      await expect(client.query(query)).rejects.toThrow('first_name_length');
+    });
+
     test('Insert a user with first_name at the limit (100 chars)', async () => {
       const longName = 'a'.repeat(100);
       const result = await client.query(
@@ -157,6 +164,13 @@ describe('Test database', () => {
       const query = `INSERT INTO users (email, username, birthdate, city, first_name, last_name, password)
                     VALUES ('toolong@test.com', 'toolong', '2000-01-01', 'City', $1, 'Last', 'password123')`;
       await expect(client.query(query, [tooLongName])).rejects.toThrow('value too long');
+    });
+
+    test('Insert a user with last_name too short (1 char) should fail', async () => {
+      const query = `INSERT INTO users (email, username, birthdate, city, first_name, last_name, password)
+                    VALUES ('last@test.com', 'lastuser', '2000-01-01', 'City', 'Nombre', 'A', 'password123')`;
+
+      await expect(client.query(query)).rejects.toThrow('last_name_length');
     });
 
     test('Insert a user with password too short (7 chars) should fail', async () => {
@@ -182,6 +196,15 @@ describe('Test database', () => {
       );
       const res = await client.query('SELECT updated_at FROM users WHERE email = $1', ['time@test.com']);
       expect(res.rows[0].updated_at).not.toBeNull();
+    });
+
+    test('Insert a user and verify last_access_time is null by default', async () => {
+      await client.query(
+        `INSERT INTO users (email, username, birthdate, city, first_name, last_name, password)
+        VALUES ('access@test.com', 'accessuser', '2000-01-01', 'City', 'Nombre', 'Apellido', 'password123')`,
+      );
+      const res = await client.query('SELECT last_access_time FROM users WHERE email = $1', ['access@test.com']);
+      expect(res.rows[0].last_access_time).toBeNull();
     });
   });
 });
