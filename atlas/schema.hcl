@@ -69,4 +69,17 @@ table "users" {
   check "username_length" {
     expr = "(length(username) > 3)"
   }
+
+  check "first_name_length" {
+    expr = "(length(first_name) > 2)"
+  }
+
+  check "last_name_length" {
+    expr = "(length(first_name) > 1)"
+  }
+
+  check "password_min_length" {
+    expr = "(length(password) >= 8)"
+  }
+
 }
